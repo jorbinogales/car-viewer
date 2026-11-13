@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from 'react';
 import { Boxes, Compass, SlidersHorizontal } from 'lucide-react';
-import { useShowroom, type SheetState, type Tab } from '../state/store';
+import { CONFIG, useShowroom, type SheetState, type Tab } from '../state/store';
 import { setInsets } from '../scene/insets';
 import { ExploreTab } from './ExploreTab';
 import { CustomizeTab } from './CustomizeTab';
@@ -30,6 +30,16 @@ function safeAreaBottom(): number {
   const v = probe.getBoundingClientRect().height;
   probe.remove();
   return v;
+}
+
+/** Atribución del modelo 3D (licencias CC BY). */
+function Credits({ credits: c }: { credits: NonNullable<typeof CONFIG.credits> }) {
+  return (
+    <p className="credits">
+      Modelo 3D «<a href={c.url} target="_blank" rel="noopener noreferrer">{c.title}</a>» de {c.author}, bajo{' '}
+      <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer">{c.license}</a>.
+    </p>
+  );
 }
 
 /** Panel lateral (escritorio) o bottom sheet de tres estados (móvil). */
@@ -195,6 +205,7 @@ export function Panel() {
             </div>
           ))
         )}
+        {CONFIG.credits && <Credits credits={CONFIG.credits} />}
       </div>
     </aside>
   );

@@ -1,7 +1,11 @@
 import type { VehicleConfig } from '../config/types';
 import { normalizeAccessories } from './accessories';
 
-export const STORAGE_KEY = 'jac-showroom:estado';
+/** Una clave por vehículo: cada coche guarda su propia configuración. */
+export const stateKey = (vehicleId: string) => `car-viewer:estado:${vehicleId}`;
+/** Clave de cuando el visor solo tenía el JAC 6. */
+export const LEGACY_KEY = 'jac-showroom:estado';
+export const LEGACY_VEHICLE_ID = 'jac-6-phev';
 /** v2: ya no se guardan piezas ocultas ni despiece; el vehículo siempre arranca ensamblado. */
 export const STORAGE_VERSION = 2;
 
@@ -64,9 +68,28 @@ export function restore(config: VehicleConfig, raw: unknown): PersistedState | n
   };
 }
 
+type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+/**
+ * Migra una sola vez lo guardado bajo la clave antigua a la del JAC 6 y borra la antigua.
+ * Si la clave nueva ya existe, no se pisa. Si falla la escritura, la antigua se conserva.
+ */
+export function migrateLegacy(store: Store): void {
+  const legacy = store.getItem(LEGACY_KEY);
+  if (legacy === null) return;
+  const key = stateKey(LEGACY_VEHICLE_ID);
+  if (store.getItem(key) === null) store.setItem(key, legacy);
+  store.removeItem(LEGACY_KEY);
+}
+
 export function loadSaved(config: VehicleConfig): PersistedState | null {
   try {
-    const txt = localStorage.getItem(STORAGE_KEY);
+    try {
+      migrateLegacy(localStorage);
+    } catch {
+      /* la migración es best effort: lo que ya esté en la clave nueva se lee igual */
+    }
+    const txt = localStorage.getItem(stateKey(config.id));
     return txt ? restore(config, JSON.parse(txt)) : null;
   } catch {
     return null;
@@ -75,7 +98,7 @@ export function loadSaved(config: VehicleConfig): PersistedState | null {
 
 export function save(config: VehicleConfig, s: PersistedState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(serialize(config, s)));
+    localStorage.setItem(stateKey(config.id), JSON.stringify(serialize(config, s)));
   } catch {
     /* almacenamiento no disponible: la app sigue sin persistir */
   }

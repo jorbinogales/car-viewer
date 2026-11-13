@@ -103,6 +103,16 @@ export interface InteriorViewDef extends ViewBase {
 
 export type ViewDef = OrbitViewDef | InteriorViewDef;
 
+/** Atribución del modelo 3D, obligatoria en licencias tipo CC BY. */
+export interface VehicleCredits {
+  title: string;
+  author: string;
+  license: string;
+  /** Página del modelo en su origen. */
+  url: string;
+  licenseUrl: string;
+}
+
 export interface VehicleConfig {
   id: string;
   brand: string;
@@ -110,6 +120,8 @@ export interface VehicleConfig {
   version: string;
   /** Marca los textos provisionales pendientes del cliente. */
   provisionalCopy: boolean;
+  /** Si existe, la UI muestra la atribución al pie del panel. */
+  credits?: VehicleCredits;
   assets: AssetDef[];
   /** Ajuste global aplicado al contenedor común (nunca pieza a pieza). */
   transform: { position: Vec3; rotationDeg: Vec3; scale: number };

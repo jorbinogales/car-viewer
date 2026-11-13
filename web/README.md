@@ -1,8 +1,10 @@
-# Showroom 3D · JAC 6 PHEV
+# Car Viewer
 
-Configurador web del JAC 6 PHEV: exploración 360°, selección de piezas, capas interiores, pintura, accesorios, despiece, puertas y portón. Funciona sin backend. Todo lo que el visor sabe del vehículo sale de un archivo de configuración tipado.
+Configurador web de vehículos 3D (hoy publica solo el VW Tiguan 2025; con dos o más vehículos aparece un selector en la cabecera): exploración 360°, selección de piezas, capas interiores, pintura, accesorios, despiece, puertas y portón. Funciona sin backend. Todo lo que el visor sabe del vehículo sale de un archivo de configuración tipado.
 
-> **Licencia del modelo:** `public/models/jac-6-phev.glb` se extrajo del configurador web público de JAC. **No se compró ni tiene licencia.** Úsalo solo internamente hasta tener permiso de JAC o un modelo con licencia.
+> **Licencias de los modelos:**
+> - **JAC 6 PHEV: no se publica.** Su modelo se extrajo del configurador web público de JAC y **no tiene licencia**. El GLB está fuera de `public/` (en `../modelos_privados/jac-6-phev.glb`) para que no entre en el build; su config sigue en `src/config/jac6.ts`. Para activarlo en local: copia el GLB a `public/models/` y añade `JAC6_CONFIG` a `src/config/vehicles.ts`.
+> - `public/models/vw-tiguan-2025.glb`: "Volkswagen Tiguan (2025)" de geyges, licencia **Sketchfab Free Standard** (uso comercial dentro de un proyecto; no se puede redistribuir el modelo por separado). La app muestra el crédito. Detalles en `docs/modelo-vw-tiguan.md`.
 
 ## Ejecutar y compilar
 
@@ -24,10 +26,20 @@ Versiones: React 19.3 · @react-three/fiber 9.8 · @react-three/drei 10.7 · thr
 
 ## Dónde poner los GLB
 
-- Modelo principal: `public/models/jac-6-phev.glb` (se sirve como `/models/jac-6-phev.glb`). La ruta se lee de `assets[0].url` en `src/config/jac6.ts`.
+- Modelo principal: `public/models/<id>.glb` (p. ej. `public/models/vw-tiguan-2025.glb`, servido como `/models/vw-tiguan-2025.glb`). La ruta se lee de `assets[0].url` en la config del vehículo (`src/config/vw-tiguan.ts`).
 - GLB adicionales (accesorios o piezas en archivos separados): añade entradas a `assets` en la config. Si no comparten coordenadas con el principal, indica `mount` (`parentNode`, `position`, `rotationDeg`, `scale`). El ajuste global (`transform`) se aplica al contenedor común, nunca pieza a pieza.
 - Compresión: el GLB usa Draco y WebP. El decodificador se sirve en local desde `public/draco/` (lo copia `scripts/copy-draco.mjs` en `postinstall`, `predev` y `prebuild`). No depende de ningún CDN.
 - Si el archivo falta, la app muestra "Falta el archivo del modelo" con la ruta exacta y un botón "Reintentar". Si está dañado o es incompatible, muestra "No se pudo cargar el modelo" con los detalles técnicos. Nunca deja una pantalla vacía.
+
+## Añadir un vehículo
+
+1. **GLB:** copia el modelo a `public/models/<id>.glb` (se sirve como `/models/<id>.glb`). Draco y WebP como el resto (ver "Dónde poner los GLB").
+2. **Config:** crea `src/config/<id>.ts` con un `VehicleConfig` (usa `jac6.ts` como plantilla). Pon un `id` único y estable (es la clave de la URL y del guardado), `assets[0].url: 'models/<id>.glb'` y los nodos reales del GLB en `parts`, `views`, etc. Ajusta también `transform` y `idleRotation`.
+3. **Créditos (licencias CC BY):** si el modelo lo exige, añade `credits: { title, author, license, url, licenseUrl }`. Se muestra al pie del panel con enlaces. Sin `credits` no se muestra nada.
+4. **Registro:** en `src/config/vehicles.ts`, importa la config y añádela a `VEHICLES`. Con 2 o más aparece el selector "Vehículo" en la cabecera; con uno solo no se renderiza.
+5. `npm run test`: el test de mapeo debe ampliarse con el GLB nuevo (hoy lee el del JAC 6).
+
+Qué vehículo se abre: `?vehiculo=<id>` en la URL, si no la última elección (`localStorage['car-viewer:vehiculo']`), si no `DEFAULT_VEHICLE_ID`. Un id desconocido cae al predeterminado. Cambiar en el selector guarda la elección, actualiza la URL y recarga la página (libera todos los recursos de three.js). La configuración elegida se guarda por vehículo.
 
 ## Registrar una pieza nueva sin tocar el visor
 
@@ -62,12 +74,15 @@ web/
   src/
     config/types.ts         esquema tipado (VehicleConfig)
     config/jac6.ts          CONFIGURACIÓN DE EJEMPLO del JAC 6 PHEV
+    config/vehicles.ts      registro VEHICLES + DEFAULT_VEHICLE_ID
+    config/active.ts        vehículo activo resuelto al arrancar
     logic/                  lógica pura sin React ni escena (con tests)
       mapping.ts            nodo → pieza → grupo
       visibility.ts         piezas disponibles / visibles / aisladas
       accessories.ts        dependencias y exclusividad
       transforms.ts         despiece (original + v·t) y aperturas
-      persistence.ts        localStorage versionado y validado
+      persistence.ts        localStorage versionado y validado, por vehículo
+      vehicle.ts            resolución del vehículo activo y cambio
       camera.ts             encuadre por vista, órbitas, easings
       logic.test.ts
     state/store.ts          estado global (Zustand)
@@ -93,7 +108,7 @@ web/
 - **Encuadre:** distancia exacta por vista, proyectando las 8 esquinas de la caja del coche con el FOV, la relación de aspecto y el área libre (la barra de vistas en escritorio; la tira de chips y el sheet en móvil, con `setViewOffset`).
 - **Pintura:** el material `Pintura` se clona una vez y el clon se comparte en sus 6 usos. Se cambian color, metalness y roughness, y el clearcoat se conserva. "Original del modelo" restaura el snapshot inicial.
 - **Iluminación:** estudio procedural de `Lightformer` (sin HDRI externo, así que no puede fallar su carga), tone mapping Neutral con exposición 1, sin bloom ni posproceso. Desde three r163, con `scene.environment` el renderer ignora `material.envMapIntensity`. Por eso los materiales de `materialTuning` reciben explícitamente el mapa del estudio y su factor (en tiempo de ejecución; el GLB no se modifica).
-- **Persistencia:** `localStorage['jac-showroom:estado']` con `version` y `vehicleId`. Solo guarda pintura, accesorios, variantes, piezas ocultas y despiece. Una versión distinta se descarta y los ids desconocidos se eliminan uno a uno.
+- **Persistencia:** `localStorage["car-viewer:estado:<vehicleId>"]`, una clave por vehículo, con `version` y `vehicleId`. Solo guarda pintura, accesorios y variantes (ocultas y despiece no). La clave antigua `jac-showroom:estado` se migra una sola vez al JAC 6 (`migrateLegacy`). Una versión distinta se descarta y los ids desconocidos se eliminan uno a uno.
 
 ## Recursos faltantes y funciones que dependen de ellos
 

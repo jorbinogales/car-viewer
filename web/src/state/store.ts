@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { JAC6_CONFIG } from '../config/jac6';
+import { ACTIVE_VEHICLE } from '../config/active';
 import { toggleAccessory } from '../logic/accessories';
 import { idle } from './idle';
 import { defaultConfigurable, loadSaved, save, type ConfigurableState } from '../logic/persistence';
 
-export const CONFIG = JAC6_CONFIG;
+export const CONFIG = ACTIVE_VEHICLE;
 
 export type LoadStatus = 'loading' | 'composing' | 'ready' | 'error' | 'missing' | 'nowebgl' | 'contextlost';
 export type Tab = 'explorar' | 'personalizar' | 'piezas';

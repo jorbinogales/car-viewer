@@ -255,7 +255,7 @@ async function flow(viewport, label, mobile) {
   check(`${label}: restablecer recupera todo`, reset.v === 'tres-cuartos' && reset.p === 'original' && !reset.h && !reset.e && !reset.o && !reset.a && !reset.i, JSON.stringify(reset));
   await page.waitForFunction(() => window.__showroom.store.getState().autoRotate === true, null, { timeout: 15000 });
   check(`${label}: restablecer reactiva la rotación`, true);
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('jac-showroom:estado')));
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('car-viewer:estado:jac-6-phev')));
   check(`${label}: estado guardado versionado y serializable`, saved?.version === 2 && saved.paintId === 'original');
   check(`${label}: no se guardan ocultas ni despiece (arranca ensamblado)`, saved && !('hidden' in saved) && !('explode' in saved));
 

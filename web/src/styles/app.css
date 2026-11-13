@@ -28,7 +28,16 @@ h1, h2, h3, h4, p { margin: 0; }
 .header-divider { width: 1px; height: 24px; background: var(--c-line); margin: 0 var(--s-4); }
 .vehicle-name { display: flex; align-items: center; font-size: var(--fs-16); line-height: var(--lh-16); font-weight: var(--fw-bold); letter-spacing: 0.02em; text-transform: uppercase; white-space: nowrap; }
 .vehicle-version { margin-left: var(--s-2); padding: 2px 6px; border: var(--bw-hair) solid var(--c-ink); border-radius: var(--r-sm); font-size: var(--fs-12); line-height: var(--lh-12); letter-spacing: var(--ls-caps); }
-.header-actions { display: flex; gap: var(--s-2); }
+.header-actions { display: flex; align-items: center; gap: var(--s-2); }
+.vehicle-picker { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.vehicle-picker-label { font-size: var(--fs-12); line-height: var(--lh-12); font-weight: var(--fw-bold); letter-spacing: var(--ls-caps); text-transform: uppercase; color: var(--c-text-2); }
+.vehicle-select {
+  height: var(--h-control); max-width: 100%; padding: 0 var(--s-3); border-radius: var(--r-sm);
+  border: var(--bw-hair) solid var(--c-ink); background: var(--c-bg); color: var(--c-text);
+  font: inherit; font-weight: var(--fw-semibold); cursor: pointer; text-overflow: ellipsis;
+}
+@media (hover: hover) { .vehicle-select:hover { background: var(--c-bg-subtle); } }
+.vehicle-select:focus-visible { outline: var(--focus-width) solid var(--c-focus); outline-offset: var(--focus-offset); }
 
 /* ---------- Botones ---------- */
 .btn {
@@ -73,6 +82,8 @@ h1, h2, h3, h4, p { margin: 0; }
   scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #BDBDBD transparent;
   overscroll-behavior: contain; touch-action: pan-y;
 }
+.credits { flex: none; padding: var(--s-3) var(--panel-pad-x); border-top: var(--bw-hair) solid var(--c-line); font-size: var(--fs-12); line-height: var(--lh-12); color: var(--c-text-2); }
+.credits a { color: var(--c-text); text-decoration: underline; text-underline-offset: 2px; }
 .panel-empty { margin: auto; padding: var(--s-5); text-align: center; color: var(--c-text-2); }
 .tab-header { padding: var(--s-5) 0; }
 .tab-header h2 { font-size: var(--fs-18); line-height: var(--lh-18); font-weight: var(--fw-bold); letter-spacing: var(--ls-title); }
@@ -306,6 +317,14 @@ h1, h2, h3, h4, p { margin: 0; }
   .vehicle-name { font-size: var(--fs-14); }
   .header .btn { width: var(--hit-min); height: var(--hit-min); padding: 0; }
   .header .btn-text { display: none; }
+  /* Con selector, este muestra el nombre del vehículo: la etiqueta y el h1 quedan solo para lectores de pantalla. */
+  .has-picker .header-divider { display: none; }
+  .has-picker .vehicle-name, .vehicle-picker-label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .header-brand { flex: none; }
+  .header-actions { min-width: 0; }
+  .vehicle-select { height: var(--hit-min); max-width: 46vw; }
   .main { grid-template-columns: minmax(0, 1fr); }
 
   .panel.is-sheet {
@@ -342,6 +361,7 @@ h1, h2, h3, h4, p { margin: 0; }
 @media (max-height: 500px) and (orientation: landscape) {
   .header .btn-text { display: none; }
   .header .btn { width: var(--hit-min); padding: 0; }
+  .vehicle-select { height: var(--hit-min); }
 }
 
 @media (forced-colors: active) {

@@ -1,6 +1,8 @@
 # Modelo JAC 6 PHEV: datos para el showroom
 
-Archivo web: `web/public/models/jac-6-phev.glb` (14 MB). Usa **KHR_draco_mesh_compression** y **EXT_texture_webp**, así que hace falta DRACOLoader con el decodificador alojado localmente. Tiene unos 2,6 M de triángulos, 44 materiales y 17 texturas.
+> **No se publica** (sin licencia). El GLB vive en `modelos_privados/jac-6-phev.glb`, fuera de `web/public/`, para que no entre en el build. Para usarlo en local, cópialo a `web/public/models/` y añade `JAC6_CONFIG` a `web/src/config/vehicles.ts`.
+
+Archivo web: `web/public/models/jac-6-phev.glb` cuando está activo (14 MB). Usa **KHR_draco_mesh_compression** y **EXT_texture_webp**, así que hace falta DRACOLoader con el decodificador alojado localmente. Tiene unos 2,6 M de triángulos, 44 materiales y 17 texturas.
 
 Origen: `JAC_6_PHEV.blend` → `blender/separar_capas.py` → `JAC_6_PHEV_capas.blend` → `blender/exportar_glb.py` → GLB.
 Para regenerarlo:

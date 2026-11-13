@@ -1,7 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Maximize, Minimize, RotateCcw } from 'lucide-react';
 import { CONFIG, useShowroom } from '../state/store';
+import { VEHICLES } from '../config/vehicles';
+import { switchVehicle } from '../logic/vehicle';
 import { Button } from './controls';
+
+/** Selector de vehículo (select nativo: teclado y lectores de pantalla gratis). Solo con 2 o más. */
+function VehiclePicker() {
+  const id = useId();
+  if (VEHICLES.length < 2) return null;
+  return (
+    <div className="vehicle-picker">
+      <label className="vehicle-picker-label" htmlFor={id}>Vehículo</label>
+      <select id={id} className="vehicle-select" value={CONFIG.id} onChange={(e) => switchVehicle(e.target.value)}>
+        {VEHICLES.map((v) => (
+          <option key={v.id} value={v.id}>{v.name} {v.version}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 /** Marca provisional. Cuando exista el SVG oficial, sustituir solo este componente. */
 export function BrandMark() {
@@ -24,7 +42,7 @@ export function Header() {
   const fullLabel = full ? 'Salir de pantalla completa' : 'Pantalla completa';
 
   return (
-    <header className="header">
+    <header className={`header${VEHICLES.length > 1 ? ' has-picker' : ''}`}>
       <div className="header-brand">
         <BrandMark />
         <span className="header-divider" aria-hidden="true" />
@@ -33,6 +51,7 @@ export function Header() {
         </h1>
       </div>
       <div className="header-actions">
+        <VehiclePicker />
         <Button icon={RotateCcw} onClick={resetAll} disabled={!ready} aria-label="Restablecer" title="Restablecer">
           <span className="btn-text">Restablecer</span>
         </Button>

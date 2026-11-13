@@ -8,3 +8,8 @@ dist/
 # Artefactos regenerables
 web/qa/
 *.tsbuildinfo
+
+# Modelos que no se publican: el JAC 6 no tiene licencia y las descargas originales de terceros
+# (Sketchfab) no se redistribuyen tal cual.
+modelos_privados/
+blender/nuevo/

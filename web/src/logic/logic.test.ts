@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { Box3, BufferGeometry, Group, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { JAC6_CONFIG as C } from '../config/jac6';
+import { VEHICLES } from '../config/vehicles';
 import type { AccessoryDef, VehicleConfig } from '../config/types';
 import { indexParts } from './mapping';
 import { normalizeAccessories, toggleAccessory } from './accessories';
@@ -14,12 +15,15 @@ interface GltfJson {
   nodes: { name: string; mesh?: number; children?: number[]; translation?: number[]; rotation?: number[]; scale?: number[] }[];
   meshes: { primitives: { attributes: { POSITION: number } }[] }[];
   accessors: { min?: number[]; max?: number[] }[];
+  materials: { name: string }[];
   scenes: { nodes: number[] }[];
 }
 
+const readGlb = (url: string) => readFileSync(join(__dirname, '../../public', url));
+
 /** Lee el chunk JSON del GLB real y reconstruye la jerarquía como lo hace GLTFLoader. */
-function loadGlbTree(): { root: Object3D; json: GltfJson } {
-  const buf = readFileSync(join(__dirname, '../../public/models/jac-6-phev.glb'));
+function loadGlbTree(url: string): { root: Object3D; json: GltfJson } {
+  const buf = readGlb(url);
   expect(buf.toString('ascii', 0, 4)).toBe('glTF');
   const json: GltfJson = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
   const build = (i: number): Object3D => {
@@ -50,9 +54,10 @@ function loadGlbTree(): { root: Object3D; json: GltfJson } {
   return { root, json };
 }
 
-describe('mapeo nodo → pieza → grupo', () => {
-  const { root, json } = loadGlbTree();
-  const index = indexParts(root, C.parts);
+// Se repite para cada vehículo registrado, contra su GLB real.
+describe.each(VEHICLES)('mapeo nodo → pieza → grupo · $name', (V) => {
+  const { root, json } = loadGlbTree(V.assets[0].url);
+  const index = indexParts(root, V.parts);
 
   it('todos los nodos de la config existen en el GLB', () => {
     expect(index.missingNodes).toEqual([]);
@@ -79,24 +84,22 @@ describe('mapeo nodo → pieza → grupo', () => {
   });
 
   it('ids, grupos, accesorios y aperturas apuntan a datos existentes', () => {
-    const ids = new Set(C.parts.map((p) => p.id));
-    expect(ids.size).toBe(C.parts.length);
-    const groups = new Set(C.partGroups.map((g) => g.id));
-    for (const p of C.parts) expect(groups.has(p.group)).toBe(true);
-    for (const a of C.accessories) {
+    const ids = new Set(V.parts.map((p) => p.id));
+    expect(ids.size).toBe(V.parts.length);
+    const groups = new Set(V.partGroups.map((g) => g.id));
+    for (const p of V.parts) expect(groups.has(p.group)).toBe(true);
+    for (const a of V.accessories) {
       expect(ids.has(a.partId)).toBe(true);
-      for (const r of a.requires ?? []) expect(C.accessories.some((x) => x.id === r)).toBe(true);
+      for (const r of a.requires ?? []) expect(V.accessories.some((x) => x.id === r)).toBe(true);
     }
-    for (const o of C.openings) expect(index.nodes.has(o.node)).toBe(true);
-    for (const n of Object.keys(C.explode)) expect(index.nodes.has(n)).toBe(true);
-    expect(C.views.some((v) => v.id === C.defaultViewId)).toBe(true);
+    for (const o of V.openings) expect(index.nodes.has(o.node)).toBe(true);
+    for (const n of Object.keys(V.explode)) expect(index.nodes.has(n)).toBe(true);
+    expect(V.views.some((v) => v.id === V.defaultViewId)).toBe(true);
   });
 
   it('la pintura existe en el GLB y hay una opción "Original"', () => {
-    const buf = readFileSync(join(__dirname, '../../public/models/jac-6-phev.glb'));
-    const j = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
-    expect(j.materials.some((m: { name: string }) => m.name === C.paintMaterial)).toBe(true);
-    expect(C.paints[0].hex).toBeNull();
+    expect(json.materials.some((m) => m.name === V.paintMaterial)).toBe(true);
+    expect(V.paints[0].hex).toBeNull();
   });
 });
 
@@ -140,9 +143,10 @@ describe('accesorios: dependencia y exclusividad', () => {
   });
 });
 
-describe('restauración exacta de transforms', () => {
+// Para cada vehículo registrado (C = su config), contra su GLB real.
+describe.each(VEHICLES)('restauración exacta de transforms · $name', (C) => {
   it('despiece 0 → 1 → 0.37 → 0 deja las matrices originales', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const index = indexParts(root, C.parts);
     root.updateMatrixWorld(true);
     const before = new Map<Object3D, Matrix4>();
@@ -160,7 +164,7 @@ describe('restauración exacta de transforms', () => {
   });
 
   it('el despiece no acumula: aplicar t dos veces da lo mismo que una', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const entries = captureExplode(indexParts(root, C.parts).nodes, C.explode);
     applyExplode(entries, 0.5);
     const once = entries.map((e) => e.node.position.clone());
@@ -171,7 +175,7 @@ describe('restauración exacta de transforms', () => {
   });
 
   it('despiece al 100 %: ninguna pieza se cruza con otra y cada rueda (rin + caucho + pinza) sale entera, fuera de la carrocería', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const index = indexParts(root, C.parts);
     // Mallas agrupadas por el nodo configurado más cercano (rin y caucho por separado, rueda a rueda).
     const nodeOf = new Map<string, Mesh[]>();
@@ -205,13 +209,13 @@ describe('restauración exacta de transforms', () => {
       for (const n of [`Caucho_${w}`, `Pinza_${w}`]) expect(moved(n).distanceTo(rim)).toBeLessThan(1e-9);
       expect(gap(open.get(`Rueda_${w}`)!, body)).toBeGreaterThan(0.1);
     }
-    // El despiece es bastante mayor que el original (≈ el doble).
-    expect(Math.abs(C.explode.Tablero[2])).toBeGreaterThanOrEqual(1.2);
-    expect(Math.abs(C.explode.Asiento_conductor[0])).toBeGreaterThanOrEqual(1);
+    // Donde la config los despliega, tablero y asientos salen lejos (≈ el doble del original).
+    if (C.explode.Tablero) expect(Math.abs(C.explode.Tablero[2])).toBeGreaterThanOrEqual(1.2);
+    if (C.explode.Asiento_conductor) expect(Math.abs(C.explode.Asiento_conductor[0])).toBeGreaterThanOrEqual(1);
   });
 
   it('la caja de encuadre con despiece abarca todas las piezas desplegadas y no altera el estado', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const index = indexParts(root, C.parts);
     const entries = captureExplode(index.nodes, C.explode);
     const meshes = [...index.meshPart.keys()];
@@ -226,7 +230,7 @@ describe('restauración exacta de transforms', () => {
   });
 
   it('abrir y cerrar puertas restaura el cuaternión original', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const entries = captureOpenings(indexParts(root, C.parts).nodes, C.openings);
     expect(entries).toHaveLength(C.openings.length);
     const q0 = entries.map((e) => e.node.quaternion.clone());
@@ -235,7 +239,7 @@ describe('restauración exacta de transforms', () => {
   });
 
   it('las puertas abren hacia fuera: el borde trasero se aleja del eje del coche', () => {
-    const { root } = loadGlbTree();
+    const { root } = loadGlbTree(C.assets[0].url);
     const entries = captureOpenings(indexParts(root, C.parts).nodes, C.openings);
     for (const e of entries.filter((x) => x.id.startsWith('puerta'))) {
       const side = Math.sign(e.node.position.x);

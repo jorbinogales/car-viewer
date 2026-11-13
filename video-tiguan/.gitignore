@@ -1,0 +1,6 @@
+node_modules
+out/*
+!out/promo-tiguan.mp4
+# Banda sonora con sonidos de Shapeforms: su licencia solo permite publicarlos dentro del video terminado.
+# Se regenera con: python scripts/gen_audio.py
+public/audio/
