@@ -1,0 +1,230 @@
+/* ==========================================================================
+   JAC 6 PHEV · Showroom 3D — tokens.css
+   Fuente de verdad visual de la interfaz. Especificación: ./DESIGN.md
+   La paleta es SOLO de la interfaz (monocroma). El vehículo conserva sus
+   materiales y colores reales.
+
+   Fuente (autoalojada, sin CDN). En el punto de entrada de la app:
+     import '@fontsource/manrope/latin-400.css';
+     import '@fontsource/manrope/latin-600.css';
+     import '@fontsource/manrope/latin-700.css';
+     import '@fontsource/manrope/latin-800.css';   // solo wordmark provisional
+
+   BREAKPOINTS (las custom properties NO funcionan dentro de @media; usar el
+   literal. Los --bp-* existen para leerlos desde JS con getComputedStyle):
+     >= 1440px   panel 380px, tipografía igual                    (--bp-xl)
+     >= 1024px   escritorio: header 64, panel lateral 360px       (--bp-desktop)
+     <  1024px   móvil/tablet: header 56, bottom sheet            (--bp-sheet = 1023.98px)
+     <  480px    móvil estrecho: gutters 16px                     (--bp-sm)
+     landscape bajo: (max-height: 500px) and (orientation: landscape)
+                 → panel lateral 320px, header 48px, sin bottom sheet
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---------- Color · superficies ---------- */
+  --c-bg:            #FFFFFF;  /* header, panel, sheet, tarjetas */
+  --c-bg-subtle:     #F5F5F5;  /* hover de filas, fondo de seleccionado, skeleton */
+  --c-bg-press:      #EBEBEB;  /* pressed de controles secundarios */
+  --c-bg-stage:      #EDEDED;  /* visor 3D (idéntico a --scene-bg) */
+  --c-bg-disabled:   #F0F0F0;
+
+  /* ---------- Color · texto ---------- */
+  --c-text:          #0A0A0A;  /* 19.8:1 sobre #FFF · principal */
+  --c-text-2:        #5C5C5C;  /* 6.69:1 sobre #FFF · 5.71:1 sobre stage · secundario */
+  --c-text-3:        #767676;  /* 4.54:1 sobre #FFF · terciario mínimo con AA */
+  --c-text-disabled: #A3A3A3;  /* solo deshabilitado (exento de contraste) */
+  --c-text-inverse:  #FFFFFF;
+
+  /* ---------- Color · tinta (acción primaria / selección) ---------- */
+  --c-ink:           #0A0A0A;
+  --c-ink-hover:     #262626;
+  --c-ink-press:     #000000;
+
+  /* ---------- Color · líneas ---------- */
+  --c-line:          #E4E4E4;  /* divisores y bordes de panel (decorativos) */
+  --c-line-card:     #D4D4D4;  /* borde en reposo de tarjetas/filas con texto */
+  --c-line-control:  #8A8A8A;  /* borde de control sin texto propio: 3.45:1 sobre #FFF (WCAG 1.4.11) */
+  --c-line-strong:   #0A0A0A;  /* botón secundario, seleccionado, foco */
+
+  /* ---------- Foco ---------- */
+  --c-focus:         #0A0A0A;
+  --focus-width:     2px;
+  --focus-offset:    2px;
+
+  /* ---------- Escena 3D (leer desde JS; ver DESIGN.md §9) ---------- */
+  --scene-bg:        #EDEDED;
+  --scene-floor:     #EDEDED;
+  --sel-line:        #0A0A0A;  /* contorno de selección: línea interior */
+  --sel-halo:        #FFFFFF;  /* contorno de selección: halo exterior */
+  --sel-line-px:     2;        /* px CSS (multiplicar por devicePixelRatio) */
+  --sel-halo-px:     2;
+  --sel-hover-px:    1;        /* hover: línea y halo a 1px, opacidad .7 */
+  --sel-hover-alpha: 0.7;
+  --scene-exposure:  1;
+
+  /* ---------- Tipografía ---------- */
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace; /* solo rutas de archivo */
+
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;  /* solo wordmark */
+
+  --fs-12: 12px;  --lh-12: 16px;   /* etiquetas de sección (mayúsculas), micro */
+  --fs-13: 13px;  --lh-13: 18px;   /* descripciones, ayudas, hint */
+  --fs-14: 14px;  --lh-14: 20px;   /* cuerpo y controles */
+  --fs-16: 16px;  --lh-16: 22px;   /* nombre de vehículo, título de estado */
+  --fs-18: 18px;  --lh-18: 24px;   /* título de pestaña y de ficha */
+  --fs-22: 22px;  --lh-22: 22px;   /* wordmark provisional */
+
+  --ls-caps:  0.08em;   /* etiquetas en mayúsculas */
+  --ls-brand: 0.18em;   /* wordmark */
+  --ls-title: -0.01em;  /* títulos 16–18 */
+
+  /* ---------- Espaciado (base 4) ---------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+
+  /* ---------- Radios ---------- */
+  --r-sm: 4px;     /* botones, segmentos, inputs */
+  --r-md: 8px;     /* tarjetas, filas, barra de vistas, popovers, toast */
+  --r-lg: 12px;    /* ficha, tarjetas de estado */
+  --r-xl: 16px;    /* esquinas superiores del bottom sheet */
+  --r-full: 999px; /* swatch, switch, hotspot, chips móviles, hint */
+
+  /* ---------- Bordes ---------- */
+  --bw-hair: 1px;
+  --bw-strong: 2px;  /* seleccionado: 1px de borde + 1px de box-shadow inset, sin layout shift */
+
+  /* ---------- Sombras (solo negro neutro; sin glass ni degradados) ---------- */
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-sheet: 0 -8px 24px rgba(0, 0, 0, 0.08);
+
+  /* ---------- Layout ---------- */
+  --h-header: 64px;
+  --h-header-m: 56px;
+  --h-header-landscape: 48px;
+  --w-panel: 360px;
+  --w-panel-xl: 380px;
+  --w-panel-landscape: 320px;
+  --h-tabs: 52px;
+  --h-viewbar: 48px;
+  --gap-viewbar: 24px;      /* distancia de la barra de vistas al borde inferior del visor */
+  --h-chips-m: 52px;        /* tira de vistas móvil, bajo el header */
+  --sheet-h-collapsed: 72px;/* 20 handle + 52 pestañas; se suma env(safe-area-inset-bottom) */
+  --sheet-h-half: 46dvh;
+  --sheet-h-full: 66dvh;
+  --h-sheet-handle: 20px;
+  --panel-pad-x: 24px;      /* 20px en < 480px */
+  --panel-pad-x-sm: 20px;
+
+  /* ---------- Controles ---------- */
+  --hit-min: 44px;          /* objetivo táctil mínimo, siempre */
+  --h-control: 40px;        /* botón/segmento con puntero fino */
+  --h-control-touch: 44px;  /* botón/segmento con puntero grueso (pointer: coarse) y móvil */
+  --h-row: 52px;
+  --h-row-touch: 56px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 28px;
+  --icon-stroke: 1.5;       /* strokeWidth de lucide; Check usa 2 */
+  --swatch-cell: 56px;
+  --swatch-size: 40px;
+  --switch-w: 44px;
+  --switch-h: 24px;
+  --switch-thumb: 18px;
+  --slider-track: 4px;
+  --slider-thumb: 24px;
+  --hotspot-size: 28px;
+  --hotspot-hit: 44px;
+
+  /* ---------- Z-index ---------- */
+  --z-canvas:  0;
+  --z-overlay: 10;   /* hint, hotspots, tooltip 3D */
+  --z-viewbar: 20;
+  --z-state:   25;   /* carga / error / sin WebGL, dentro del visor */
+  --z-panel:   30;
+  --z-sheet:   35;
+  --z-header:  40;
+  --z-popover: 50;
+  --z-toast:   60;
+
+  /* ---------- Motion ---------- */
+  --motion-scale: 1;              /* 0 con prefers-reduced-motion; úsalo también en JS */
+  --dur-instant: 100ms;           /* hover, press */
+  --dur-fast: 160ms;              /* switch, check, fade de pestaña, hint */
+  --dur-base: 240ms;              /* aparición de ficha, toast, popover */
+  --dur-sheet: 320ms;             /* snap del bottom sheet y reencuadre sincronizado */
+  --dur-door: 600ms;              /* puertas / portón */
+  --dur-cam-min: 600ms;           /* transición de cámara: mínimo */
+  --dur-cam: 900ms;               /* transición de cámara: base */
+  --dur-cam-max: 1200ms;          /* transición de cámara: máximo (a/desde Interior) */
+  --dur-intro: 1400ms;            /* dolly de entrada tras la carga */
+  --dur-loop-indeterminate: 1400ms;
+
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);   /* entradas, paneles, sheet */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);   /* cámara, puertas */
+  --ease-std:    cubic-bezier(0.2, 0, 0, 1);       /* hover, color */
+  --ease-linear: linear;                           /* barra indeterminada, spinner */
+
+  /* ---------- Breakpoints (solo lectura desde JS) ---------- */
+  --bp-sm: 480px;
+  --bp-sheet: 1023.98px;
+  --bp-desktop: 1024px;
+  --bp-xl: 1440px;
+}
+
+/* Ancho del panel en pantallas grandes */
+@media (min-width: 1440px) {
+  :root { --w-panel: var(--w-panel-xl); }
+}
+
+/* Puntero grueso: controles de 44px */
+@media (pointer: coarse) {
+  :root {
+    --h-control: var(--h-control-touch);
+    --h-row: var(--h-row-touch);
+  }
+}
+
+/* Móvil / tablet: header 56 y gutters 20 en estrecho */
+@media (max-width: 1023.98px) {
+  :root { --h-header: var(--h-header-m); }
+}
+@media (max-width: 479.98px) {
+  :root { --panel-pad-x: var(--panel-pad-x-sm); }
+}
+
+/* Landscape bajo (teléfono horizontal): panel lateral compacto */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --h-header: var(--h-header-landscape);
+    --w-panel: var(--w-panel-landscape);
+  }
+}
+
+/* Movimiento reducido: ver DESIGN.md §11 para qué se desactiva */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+    --dur-instant: 0.01ms;
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-sheet: 0.01ms;
+    --dur-door: 0.01ms;
+    --dur-cam-min: 0.01ms;
+    --dur-cam: 0.01ms;
+    --dur-cam-max: 0.01ms;
+    --dur-intro: 0.01ms;
+    --dur-loop-indeterminate: 0.01ms;
+  }
+}
+
+/* Utilidades base mínimas (foco global coherente) */
+:where(button, [role="tab"], [role="radio"], [role="switch"], input, a, summary):focus-visible {
+  outline: var(--focus-width) solid var(--c-focus);
+  outline-offset: var(--focus-offset);
+}

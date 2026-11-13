@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# Fuentes de Blender: superan el límite de 100 MB de GitHub
+*.blend
+*.blend1
+
+# Artefactos regenerables
+web/qa/
+*.tsbuildinfo

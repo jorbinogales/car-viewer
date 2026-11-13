@@ -1,0 +1,22 @@
+{
+  "name": "jac6-promo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Video promocional (20 s, 1920x1080, 30 fps) de JAC 6 PHEV · Showroom 3D",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Promo out/promo.mp4 --codec h264 --concurrency 3",
+    "still": "remotion still src/index.ts Promo"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.543",
+    "@remotion/google-fonts": "4.0.543",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.543"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}
